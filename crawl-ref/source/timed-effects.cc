@@ -390,10 +390,12 @@ static bool _deadend_check_floor(const coord_def &p)
 
     return true;
 }
+#if TAG_MAJOR_VERSION == 34
+const int LABYRINTH_BORDER = 4;
 
 // Changes a small portion of a labyrinth by exchanging wall against floor
 // grids in such a way that connectivity remains guaranteed.
-void change_labyrinth(bool msg)
+static void _change_labyrinth()
 {
     int size = random_range(12, 24); // size of the shifted area (square)
     coord_def c1, c2; // upper left, lower right corners of the shifted area
@@ -440,24 +442,7 @@ void change_labyrinth(bool msg)
     }
 
     if (targets.empty())
-    {
-        if (msg)
-            mpr("No unexplored wall grids found!");
         return;
-    }
-
-    if (msg)
-    {
-        mprf(MSGCH_DIAGNOSTICS, "Changing labyrinth from (%d, %d) to (%d, %d)",
-             c1.x, c1.y, c2.x, c2.y);
-
-        string path_str = "";
-        mprf(MSGCH_DIAGNOSTICS, "Here's the list of targets: ");
-        for (coord_def target : targets)
-            path_str += make_stringf("(%d, %d)  ", target.x, target.y);
-        mprf(MSGCH_DIAGNOSTICS, "%s", path_str.c_str());
-        mprf(MSGCH_DIAGNOSTICS, "-> #targets = %u", (unsigned int)targets.size());
-    }
 
 #ifdef WIZARD
     // Remove old highlighted areas to make place for the new ones.
@@ -494,13 +479,9 @@ void change_labyrinth(bool msg)
 
         // Pathfinding from src to dst...
         monster_pathfind mp;
-        bool success = mp.init_pathfind(src, dst, false, msg);
+        bool success = mp.init_pathfind(src, dst, false);
         if (!success)
-        {
-            if (msg)
-                mprf(MSGCH_DIAGNOSTICS, "Something went badly wrong - no path found!");
             continue;
-        }
 
         // Get the actual path.
         const vector<coord_def> path = mp.backtrack();
@@ -555,11 +536,6 @@ void change_labyrinth(bool msg)
         // with an adjacent wall type.
         const int pick = random_range(0, (int) points.size() - 1);
         const coord_def p(points[pick]);
-        if (msg)
-        {
-            mprf(MSGCH_DIAGNOSTICS, "Switch %d (%d, %d) with %d (%d, %d).",
-                 (int) old_grid, c.x, c.y, (int) grd(p), p.x, p.y);
-        }
 #ifdef WIZARD
         if (you.wizard)
         {
@@ -597,14 +573,7 @@ void change_labyrinth(bool msg)
         {
             old_grid = grd[p.x][p.y-1];
             if (!feat_is_wall(old_grid))
-            {
-                if (msg)
-                {
-                    mprf(MSGCH_DIAGNOSTICS,
-                         "No adjacent walls at pos (%d, %d)?", p.x, p.y);
-                }
                 old_grid = DNGN_STONE_WALL;
-            }
             else if (old_grid != DNGN_ROCK_WALL && old_grid != DNGN_STONE_WALL
                      && old_grid != DNGN_METAL_WALL && !one_chance_in(3))
             {
@@ -661,12 +630,6 @@ void change_labyrinth(bool msg)
         if (!feat_is_wall(grd(*ri)) || igrd(*ri) == NON_ITEM)
             continue;
 
-        if (msg)
-        {
-            mprf(MSGCH_DIAGNOSTICS,
-                 "Need to move around some items at pos (%d, %d)...",
-                 ri->x, ri->y);
-        }
         // Search the eight possible directions in random order.
         shuffle_array(dirs);
         for (coord_def dir : dirs)
@@ -680,12 +643,6 @@ void change_labyrinth(bool msg)
                 // Once a valid grid is found, move all items from the
                 // stack onto it.
                 move_items(*ri, p);
-
-                if (msg)
-                {
-                    mprf(MSGCH_DIAGNOSTICS, "Moved items over to (%d, %d)",
-                         p.x, p.y);
-                }
                 break;
             }
         }
@@ -705,6 +662,13 @@ void change_labyrinth(bool msg)
     case 3: mpr("You feel a sudden draft!"); break;
     }
 }
+
+static void _lab_change(int /*time_delta*/)
+{
+    if (player_in_branch(BRANCH_LABYRINTH))
+        _change_labyrinth();
+}
+#endif
 
 static void _handle_magic_contamination()
 {
@@ -798,12 +762,6 @@ static void _handle_magic_contamination(int /*time_delta*/)
 static void _wait_practice(int /*time_delta*/)
 {
     practise_waiting();
-}
-
-static void _lab_change(int /*time_delta*/)
-{
-    if (player_in_branch(BRANCH_LABYRINTH))
-        change_labyrinth();
 }
 
 // Update the abyss speed. This place is unstable and the speed can
@@ -942,7 +900,9 @@ static struct timed_effect timed_effects[] =
 #endif
     { rot_inventory_food,            100,   300, false },
     { _wait_practice,                100,   300, false },
+#if TAG_MAJOR_VERSION == 34
     { _lab_change,                  1000,  3000, false },
+#endif
     { _abyss_speed,                  100,   300, false },
     { _jiyva_effects,                100,   300, false },
     { _evolve,                      5000, 15000, false },
@@ -970,8 +930,8 @@ void handle_time()
                     spawn_random_monsters();
     }
 
-    // Labyrinth and Abyss maprot.
-    if (player_in_branch(BRANCH_LABYRINTH) || player_in_branch(BRANCH_ABYSS))
+    // Abyss maprot.
+    if (player_in_branch(BRANCH_ABYSS))
         forget_map(true);
 
     // Magic contamination from spells and Orb.
