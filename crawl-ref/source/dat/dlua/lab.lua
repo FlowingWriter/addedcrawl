@@ -380,3 +380,21 @@ tier2_lab_arenas = {
     weight  = 0
   },
 }
+
+function lab_exit_loot(e)
+    local lab_loot = "superb_item w:49 / any armour w:7 / any wand w:14 " ..
+                     "/ any scroll"
+
+    local num_items = 7 + crawl.random2avg(10, 2)
+    local item_def = ""
+    for i = 1, num_items do
+        if i > 1 then
+            item_def = item_def .. ", "
+        end
+
+        item_def = item_def ..
+                   (crawl.one_chance_in(3) and "star_item" or lab_loot)
+    end
+
+    e.kitem("< = " .. item_def)
+end
