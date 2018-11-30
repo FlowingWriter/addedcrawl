@@ -1,3 +1,117 @@
+-- Set up transporter features on glyphs 'P' and 'Q' based on the current
+-- subvault number.
+-- @param e Lua environment.
+function lab_arena_transporter_setup(e)
+    if lab_arena_numsv == nil then
+        lab_arena_numsv = 1
+    else
+        lab_arena_numsv = lab_arena_numsv + 1
+    end
+
+    e.lua_marker("P", transp_dest_loc("lab_arena_entry_" ..
+                                      tostring(lab_arena_numsv)))
+    e.lua_marker("Q",
+                 transp_loc("lab_arena_exit_" ..  tostring(lab_arena_numsv)))
+end
+
+-- Get a random arena entry for an arena subvault based on the arena's tier.
+-- @param e Lua environment.
+function lab_arena_get_monster_entry(e)
+    local lab_arenas
+    if lab_arena_tier == 1 then
+        lab_arenas = tier1_lab_arenas
+    else
+        lab_arenas = tier2_lab_arenas
+    end
+
+    return util.random_weighted_from("weight", lab_arenas)
+end
+
+-- Make a KMONS statement based on a given monster entry and glyph. Roll the
+-- number of monsters to place and place them on that glyph.
+-- @param e     Lua environment.
+-- @param entry A table with keys 'mons', 'min', and 'max' See the comments
+--              above the variable tier1_lab_arenas.
+-- @param glyph The glyph on which to place the entry. If entry is nil, this
+--              glyph will be replaced with floor.
+function lab_arena_mons_setup(e, entry, glyph)
+    if entry == nil then
+        e.subst(glyph .. " = .")
+        return
+    end
+
+    e.kmons(glyph .. " = " .. entry["mons"])
+
+    local n = entry["min"] + crawl.random2(entry["max"] - entry["min"] + 1)
+    if n < 1 then
+        e.subst(glyph .. " = .")
+    else
+        e.nsubst(glyph .. " = " .. tostring(n) .. "=" .. glyph .. " / .")
+    end
+end
+
+-- Set up item definitions for arena subvaults.
+-- @param e            Lua environment.
+-- @param other loot   If non-nil, place this items as a guaranteed loot item.
+function lab_arena_item_setup(e, other_loot)
+    -- If an entry defines loot, one of that item will always place, otherwise
+    -- 50% chance of good scroll or potion and 50% chance of star_item.
+    if other_loot then
+        e.item(other_loot)
+        d_first_nsubst = "d"
+    else
+        e.item(dgn.loot_scrolls .. " / " .. dgn.loot_potions)
+        d_first_nsubst = "*d"
+    end
+
+    -- For tier 1 arenas, we place one more item that's either 2/3 chance
+    -- superb item or star_item and 1/3 chance for good_item aux or jewellery.
+    if lab_arena_tier == 1 then
+        e.item(dgn.good_aux_armour)
+        e.item("any jewellery good_item")
+        e.nsubst("d = " .. d_first_nsubst .. " / ef|*|* / .")
+    -- For tier 2
+    else
+        if crawl.one_chance_in(3) then
+            e.item(dgn.randart_aux)
+            e.item("any jewellery randart")
+        else
+            e.item(dgn.good_aux_armour)
+            e.item("any jewellery good_item")
+        end
+        e.nsubst("d = " .. d_first_nsubst .. " / ef / |* / .")
+    end
+end
+
+-- Arena subvault main setup.
+-- @param e            Lua environment.
+-- @param change_rock  If true, replace all 'x' with a wall type appropriate
+--                     for the given tier. Defaults to true.
+--
+-- See the comment in the arena subvault section for glyphs used.
+function lab_arena_subvault_setup(e, change_rock)
+    lab_arena_transporter_setup(e)
+
+    local entry = lab_arena_get_monster_entry(e)
+
+    lab_arena_item_setup(e, entry["loot"])
+
+    lab_arena_mons_setup(e, entry["first"], "1")
+    lab_arena_mons_setup(e, entry["second"], "2")
+    lab_arena_mons_setup(e, entry["third"], "3")
+
+    if change_rock == nil then change_rock = true end
+    if change_rock then
+        local glyphs
+        if lab_arena_tier == 1 then
+            glyphs = "xxc"
+        else
+            glyphs = "cccvvb"
+        end
+        e.subst("x : " .. glyphs)
+    end
+end
+
 -- Arena monster sets used for the first vault choice. The monster entries are
 -- in the keys 'first', 'second', and 'third' in decreasing difficulty with
 -- each entry - giving the monster to place on the glyphs '1', '2', and '3',
