@@ -3,6 +3,7 @@
 #
 # <<1>>      Lab arena subvaults.
 # <<2>>      Lab arena exit subvaults.
+# <<3>>      Lab arena main maps.
 ###############################################################################
 
 : require("dlua/lab.lua")
@@ -31,6 +32,10 @@ function lab_portal(e)
         dstname = 'lab' })
     e.kfeat("O = enter_labyrinth")
     e.tile("O = dngn_portal_labyrinth")
+end
+
+function lab_appearence(e)
+  e.kfeat("< = exit_labyrinth")
 end
 }}
 
@@ -558,4 +563,96 @@ vvvvvbG'Gbvvvvv
 vvvvvbA'Cbvvvvv
 vvvvvbG<Gbvvvvv
 vvvvvbbbbbvvvvv
+ENDMAP
+
+#############################################################################
+# <<3>> Labyrinth arena main maps.
+#############################################################################
+# These are encompass maps that place the arena and exit subvaults. These maps
+# should show the player all arenas and give the player some kind of path
+# through those arenas based on choice. The number of arenas taken should be
+# anywhere from 2-4 to avoid these from completely overshadowing the reward
+# from the boss fight.
+#
+# Before any arena subvault statements, call the setup function:
+#
+#    lab_arena_setup(_G, entry_glyphs, exit_glyphs)
+#
+# The map should place the arena entry transporters on the glyphs in the string
+# 'entry_glyphs' and the arena exit transporter landing sites on the glyphs in
+# the string 'exit_glyphs'.
+
+# The glyphs in these strings must be in the same order of the subvault
+# transporter satements so that the transporters go to their intended
+# destinations.
+#
+# Lab arenas have two tiers for easier and harder difficulties. To set a
+# subvault's difficulty, call lab_arena_set_tier(n) before the subvault
+# statement and use tags lab_arena_first and lab_arena_second. The
+# lab_arena_setup() function will initialize difficulty to the first tier.
+#
+# The map should place exactly one subvault with tag 'lab_exit', which will
+# place and exit features. Call lab_appearance(_G) to set the exit feature on
+# the '<' and for any other common visual changes.
+NAME:   gammafunk_lab_branching
+ORIENT: encompass
+TAGS:   no_item_gen no_monster_gen no_trap_gen
+: lab_arena_setup(_G, "DFJLNP", "EHKMOQ")
+SUBVAULT: a : lab_arena_first
+SUBVAULT: p : lab_arena_first
+: lab_arena_set_tier(2)
+SUBVAULT: q : lab_arena_second
+SUBVAULT: r : lab_arena_second
+SUBVAULT: s : lab_arena_second
+SUBVAULT: u : lab_arena_second
+SUBVAULT: y : lab_exit
+SUBST: apqrsu = c, y = v
+: lab_appearence(_G)
+MAP
+              ccccccccccccccccccccccccccccccc
+              cG.............<.............Gc
+              c.............................c
+              c..nnnnaaaaaan...nppppppnnnn..c
+          ccccc..naaaaaaaaan...npppppppppn..ccccc
+          cG.....naaaaaaaaan.A.npppppppppn.....Gc
+          c......naaaaaaaaan...npppppppppn......c
+          c..nnnnnaaaaaaaaan...npppppppppnnnnn..c
+          c..n.E.naaaaaaaaanD.Fnpppppppppn.H.n..c
+          c..n...naaaaaaaaan...npppppppppn...n..c
+    ccccccc..n...naaaaaaaaan...npppppppppn...n..ccccccc
+    cG.......n...naaaaaaaaan...npppppppppn...n.......Gc
+    c........n...naaaaaaaaan...npppppppppn...n........c
+ccccc..nnnnnnn...nnnnaaaaaan...nppppppnnnn...nnnnnnn..ccccc
+cG.....n...............n...........n...............n.....Gc
+c......nJ......<......Ln...........nN......<......Pn......c
+c..nnnnnnnnnnnnnnnnnnnnnnnnn...nnnnnnnnnnnnnnnnnnnnnnnnn..c
+c..qqqqqqqqqqq...rrrrrrrrrrr...sssssssssss...uuuuuuuuuuu..c
+c..qqqqqqqqqqq...rrrrrrrrrrr...sssssssssss...uuuuuuuuuuu..c
+c..qqqqqqqqqqq...rrrrrrrrrrr...sssssssssss...uuuuuuuuuuu..c
+c..qqqqqqqqqqq...rrrrrrrrrrr...sssssssssss...uuuuuuuuuuu..c
+c..qqqqqqqqqqq...rrrrrrrrrrr...sssssssssss...uuuuuuuuuuu..c
+c..qqqqqqqqqqq...rrrrrrrrrrr...sssssssssss...uuuuuuuuuuu..c
+c..nqqqqqqqqqn...nrrrrrrrrrn...nsssssssssn...nuuuuuuuuun..c
+c..nqqqqqqqqqn...nrrrrrrrrrn...nsssssssssn...nuuuuuuuuun..c
+c..nqqqqqqqqqn...nrrrrrrrrrn...nsssssssssn...nuuuuuuuuun..c
+c..nnnnnnnnnnn...nnnnnnnnnnn...nnnnnnnnnnn...nnnnnnnnnnn..c
+c.........................................................c
+cG..........................GTG..........................Gc
+ccccccvnnnvvvvvvvvvvvnnnvvvvvvvvvvvnnnvvvvvvvvvvvnnnvcccccc
+      v.K.............M.............O.............Q.v
+      v.............................................v
+      vvvvvvvvvvvvvvvyyyyyyyyyyyyyyyvvvvvvvvvvvvvvvvv
+                    vyyyyyyyyyyyyyyyv
+                    vyyyyyyyyyyyyyyyv
+                    vyyyyyyyyyyyyyyyv
+                    vyyyyyyyyyyyyyyyv
+                    vyyyyyyyyyyyyyyyv
+                    vyyyyyyyyyyyyyyyv
+                    vyyyyyyyyyyyyyyyv
+                    vyyyyyyyyyyyyyyyv
+                    vyyyyyyyyyyyyyyyv
+                    vvyyyyyyyyyyyyyvv
+                    vvyyyyyyyyyyyyyvv
+                    vvyyyyyyyyyyyyyvv
+                    vvvvvvvvvvvvvvvvv
 ENDMAP
