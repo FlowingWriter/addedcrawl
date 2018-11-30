@@ -1,3 +1,53 @@
+-- Set the lab arena subvault tier. This must be called by main lab arena
+-- encompass map before the subvault statement.
+-- @param n The tier, currently either 1 or 2.
+function lab_arena_set_tier(n)
+    lab_arena_tier = n
+end
+
+-- Set a random monster list based on the monsters in tier1_lab_arenas. Use
+-- only these so that the potential summons won't get too crazy. This isn't a
+-- great system since custom weights in the "mons" entries could throw this
+-- off.
+function lab_random_mons_setup(e)
+    local mon_list = ""
+    for _, entry in ipairs(tier1_lab_arenas) do
+        for _, key in ipairs({"first", "second", "third"}) do
+            if entry[key] ~= nil then
+                if mon_list == "" then
+                    mon_list = entry[key]["mons"]
+                else
+                    mon_list = mon_list .. " / " .. entry[key]["mons"]
+                end
+            end
+        end
+    end
+
+   e.set_random_mon_list(mon_list)
+end
+
+-- Main setup function for lab arena encompass maps. See comments in section 3
+-- for details.
+--
+-- @param e            Lua environment.
+-- @param entry_glyphs A string of glyphs for entry transporter glyphs in order
+--                     of subvault placement.
+-- @param exit_glyphs  A string of glyphs for exit transporter landing site
+--                     glyphs in order of subvault placement.
+function lab_arena_setup(e, entry_glyphs, exit_glyphs)
+    for i = 1, entry_glyphs:len() do
+        e.lua_marker(entry_glyphs:sub(i,i),
+                     transp_loc("lab_arena_entry_" ..  tostring(i)))
+        e.lua_marker(exit_glyphs:sub(i,i),
+                     transp_dest_loc("lab_arena_exit_" ..  tostring(i)))
+    end
+
+    lab_arena_set_tier(1)
+    lab_arena_numsv = 0
+
+    lab_random_mons_setup(e)
+end
+
 -- Set up transporter features on glyphs 'P' and 'Q' based on the current
 -- subvault number.
 -- @param e Lua environment.
