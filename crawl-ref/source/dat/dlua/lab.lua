@@ -225,7 +225,7 @@ tier1_lab_arenas = {
   {
     first   = {mons = "torpor snail", min = 1, max = 1},
     second  = {mons = "yak band / wolf band / elephant band", min = 1,
-              max = 1},
+               max = 1},
   },
   {
     first   = {mons = "fire crab", min = 1, max = 1},
@@ -400,17 +400,17 @@ tier2_lab_arenas = {
     loot   = "potion of mutation ident:type",
   },
   {
-    first  = {mons = "wizard", min = 2, max = 3},
+    second = {mons = "wizard", min = 2, max = 3},
   },
   {
-    first  = {mons = "death scarab", min = 1, max = 3},
-    second = {mons = "spectral thing place:Spider:4", min = 1, max = 3},
+    second = {mons = "death scarab", min = 1, max = 3},
+    third  = {mons = "spectral thing place:Spider:4", min = 1, max = 3},
   },
   {
     first  = {mons = "orange crystal statue", min = 1, max = 1},
   },
   {
-    third  = {mons = "obsidian statue", min = 1, max = 1},
+    first  = {mons = "obsidian statue", min = 1, max = 1},
   },
   {
     -- Guarantee that one places in the central location.
