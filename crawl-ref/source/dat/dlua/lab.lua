@@ -106,12 +106,12 @@ end
 function lab_arena_item_setup(e, other_loot)
     -- If an entry defines loot, one of that item will always place, otherwise
     -- 50% chance of good scroll or potion and 50% chance of star_item.
+    local d_first_nsubst = "d*"
     if other_loot then
         e.item(other_loot)
         d_first_nsubst = "d"
     else
         e.item(dgn.loot_scrolls .. " / " .. dgn.loot_potions)
-        d_first_nsubst = "*d"
     end
 
     -- For tier 1 arenas, we place one more item that's either 2/3 chance
@@ -123,7 +123,7 @@ function lab_arena_item_setup(e, other_loot)
     -- For tier 2
     else
         if crawl.one_chance_in(3) then
-            e.item(dgn.randart_aux)
+            e.item(dgn.randart_aux_armour)
             e.item("any jewellery randart")
         else
             e.item(dgn.good_aux_armour)
